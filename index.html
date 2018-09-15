@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>The Shenango Channel</title>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <link rel="stylesheet" href="assets/css/jqeury-ui.min.css">
+    <style type='text/css'>
+      html, body {
+        width: 100%;
+        height: 100%;
+        min-width: 770px;
+        min-height: 745px;
+        margin: 0;
+      }
+    </style>
+    
+    <h1>Pittsburgh Plume Visualization</h1>
+    
+
+  </head>
+  <body>
+	<script type="text/javascript" src="https://maps.googleapis.com/maps/api/js"></script>
+	<script src="assets/javascript/jquery.min.js"></script>
+	<script src="assets/javascript/jquery-ui.min.js"></script> 
+	<script src="map.js"></script>
+  	<script>
+		/*
+		var xhr = new XMLHttpRequest();
+		xhr.open('GET', '/my/image/name.png', true);
+		xhr.responseType = 'arraybuffer';
+ 
+		xhr.onload = function(e) {
+  			// response is unsigned 8 bit integer
+  		var responseArray = new Float32Array(this.response); 
+		console.log(responseArray)
+			};
+		*/
+ 
+		// Initialize Map
+		$.get("https://data.cmucreatelab.org/purpleair-aggregates/purpleair_2018-07-29.json", function(data){
+			
+			console.log(data)
+  		})
+	        initMap('map-canvas');
+		$( function() {
+    			$( "#datepicker" ).datepicker();
+  		} );
+
+	</script>
+
+	<p>Choose Date: <input type="date"></p>
+	
+  </body>
+</html>
+
