@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>The Shenango Channel</title>
+    <title>Pittsburgh Plume Viz</title>
     <meta http-equiv="content-type" content="text/html; charset=UTF-8">
     <link rel="stylesheet" href="assets/css/jqeury-ui.min.css">
+    <link rel="stylesheet" href="assets/css/defaultUI.css">
     <style type='text/css'>
       html, body {
         width: 100%;
@@ -17,64 +18,195 @@
         margin: 0;
         padding: 0;
       }
+
+      .button {
+    	background-color: #555555; color: white;
+    	border: none;
+    	padding: 7px 16px;
+    	text-align: center;
+    	text-decoration: none;
+    	display: inline-block;
+    	font-size: 12px;
+      }
+
+      .selected {
+
+        background-color: #888888;
+      }
+
+      #header {
+	background-color: #555555;
+	color: white;
+        padding: 1px;
+        text-align: center;
+        text-decoration: none;
+	font-size 36px; 
+     }
+     .floattitle{
+        position: absolute;
+        top: 2%;
+        left: 30%;
+        z-index: 5;
+	color: white;
+	text-align: center;
+     }
+     .float{
+	position: absolute;
+        top: 10%;
+        left: 1%;
+        z-index: 5;
+     } 
+     .floatleft{
+        position: absolute;
+        top: 12%;
+        right: 1%;
+        z-index: 5;
+     }
+     input[type=date] {
+	width: 75%;
+        font-size: 12px;
+    	padding: 12px 10px;
+    	margin: 8px 0;
+    	box-sizing: border-box;
+     }
     </style>
     
-    <h1>Pittsburgh Plume Visualization</h1>
     
 
   </head>
   <body>
 	<script src="assets/javascript/jquery.min.js"></script>
         <script src="assets/javascript/jquery-ui.min.js"></script>
+	<script type="text/javascript" src=""></script>
 	<script src="assets/javascript/CanvasLayer.js"></script>
+	<script src="assets/javascript/TimeSlider.js"></script>
 	<script src="map.js"></script>
-	<div id='map-canvas'></div>  
+        <div id='map-canvas'></div>
+        <h1 class="floattitle">Pittsburgh Plume Visualization</h1>
+	<div class="float">  
+                <span style="opacity:1;">            
+                <input style="opacity:1;" id="setdate" type="date" required></span>
+                <button style="opacity:1;" class="button" id="done">Go</button>
+                
+        </div>
+	<div class="floatleft">
+                <span style="opacity:1;">
+                <button class="button" id="pm25">PM2.5</button></span>
+                <button style="opacity:1;" class="button selected" id="so2">SO2</button>
+
+        </div>
+	<div id="time-slider-controls"></div>
 	<script>
-		/*
-		var xhr = new XMLHttpRequest();
-		xhr.open('GET', '/my/image/name.png', true);
-		xhr.responseType = 'arraybuffer';
- 
-		xhr.onload = function(e) {
-  			// response is unsigned 8 bit integer
-  		var responseArray = new Float32Array(this.response); 
-		console.log(responseArray)
-			};
-		*/
- 
-		// Initialize Map
-		initMap('map-canvas');
-	        google.maps.event.addDomListener(window, "load", initialize);
-		
-		function initialize(){
-	           var map;
-		   var canvasLayer;
-		   var context;
-		   var contextScale;
-		   var resolutionScale;
-		   var mapProjection;
-		   var projectionScale = 2000;
-		   var y_scale;
-	//                   initMap('map-canvas');
+
+	    // Initialize Map
+	    var map;
+	    var dataUrl = "https://data.cmucreatelab.org/purpleair-aggregates/so2_"
+	    var dataUrl2 = "https://data.cmucreatelab.org/purpleair-aggregates/purpleair_"
+            var canvasLayer;
+	    var context;
+	    var contextScale;
+	    var resolutionScale;
+	    var mapProjection;
+	    var projectionScale = 2000;
+	    var y_scale;
+	    var timeSlider;
+	    var siteData;
+            var pm25Data;
+            var curDate = "2018-10-06";
+	    var isSO2 = true; 
+	    initMap('map-canvas');
+	    google.maps.event.addDomListener(window, "load", initialize);
+            
+	    timeSlider = new TimeSlider({
+		    startTime: new Date(2018,10, 06, 0, 0, 0, 0).getTime(),
+		    endTime: new Date(2018, 10, 06, 23, 59, 59, 0).getTime(),
+		    increment: 5*60*1000,
+		    span: 0*60*1000,
+		    formatCurrentTime: function(date) {
+		    return String(date.getFullYear()) + "/" + String(date.getMonth()) + "/" + String(date.getDate())
+				 + " " + String(date.getHours()) + ":" + String(date.getMinutes()) + ":" + 
+				String(date.getSeconds());
+		    },
+		    animationRate: {
+		      fast: 50,
+		      medium: 100,
+		      slow: 150
+		    }
+	    });
+           $("#pm25").click(function() {
+		isSO2 = false;
+		$("#pm25").addClass("selected");
+		$("#so2").removeClass("selected");
+
+	   });
+
+	   $("#so2").click(function() {
+                isSO2 = true;
+                $("#pm25").removeClass("selected");
+                $("#so2").addClass("selected");
+
+           });
+	
+           $("#done").click(function() {
+
+		if($("#setdate").val() != ""){
+		   console.log($("#setdate").val())
+		   var setDate = $("#setdate").val();
+		   curDate = String(setDate)
+                   curDateObj = curDate.split("-");
+		   timeSlider = new TimeSlider({
+                    startTime: new Date(curDateObj[0],curDateObj[1], curDateObj[2], 0, 0, 0, 0).getTime(),
+                    endTime: new Date(curDateObj[0],curDateObj[1], curDateObj[2], 23, 59, 59, 0).getTime(),
+                    increment: 5*60*1000,
+                    span: 0*60*1000,
+                    formatCurrentTime: function(date) {
+                    return String(date.getFullYear()) + "/" + String(date.getMonth()) + "/" + String(date.getDate())
+                                 + " " + String(date.getHours()) + ":" + String(date.getMinutes()) + ":" + 
+                                String(date.getSeconds());
+                    },
+                    animationRate: {
+                      fast: 50,
+                      medium: 100,
+                      slow: 150
+                    }
+            	   });
+                   initialize()
+
+		}
+	   })   
+           function initialize(){	     
+                   
 		   setupCanvasLayerProjection();
-		   $.get("https://data.cmucreatelab.org/purpleair-aggregates/purpleair_2018-07-29.json", function(data){
-                        console.log(data);
-			for(var i = 0; i < data.length; i++){
-                                console.log(data[i])
-				paintPM25(data[i])
-                        }
-                        console.log(data)
-                })
+		   $.get(dataUrl + curDate + ".json", function(data){
+		         siteData = data;
+                         if(isSO2){
+  			 	for(var i = 0; i < data.length; i++){
+  					paintPM25(data[i], 4)
+          		 	}
+ 			 }
 
+                   })
 
-		}	
-		$( function() {
-    			$( "#datepicker" ).datepicker();
-  		} );
+		   $.get(dataUrl2 + curDate + ".json", function(data){
+                         pm25Data = data;
+                         if(!isSO2){
+			 	for(var i = 0; i < data.length; i++){
+                                	paintPM25_2(data[i], 4)
+                         	}
+			 }
+
+                   })
+           }	   
+
+	$("#Tslider1").change(function() {
+                console.log("Hello");
+		repaintCanvasLayer()
+	});
+	   
+
 
 	</script>
 
-	<p>Choose Date: <input type="date"></p>
   </body>
 </html>
 
